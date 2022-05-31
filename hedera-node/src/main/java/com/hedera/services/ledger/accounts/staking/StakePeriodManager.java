@@ -65,7 +65,7 @@ public class StakePeriodManager {
 	public long latestRewardableStakePeriodStart() {
 		// The latest period by which an account must have started staking, if it can be eligible for a
 		// reward; if staking is not active, this will return Long.MIN_VALUE so no account is eligible
-		return networkCtx.get().areRewardsActivated() ? currentStakePeriod() - 1 : Long.MIN_VALUE;
+		return networkCtx.get().areRewardsActivated() ? currentStakePeriod(): Long.MIN_VALUE; // need to change back  < = only for testing
 	}
 
 	public boolean isRewardable(final long stakePeriodStart) {
@@ -76,7 +76,7 @@ public class StakePeriodManager {
 		// throughout today.  If it equals currentStakePeriod-1, that means it either started yesterday or has already been
 		// rewarded for yesterday. Either way, it might be rewarded for today after today ends, but shouldn't yet be
 		// rewarded for today, because today hasn't finished yet.
-		return stakePeriodStart > -1 && stakePeriodStart < latestRewardableStakePeriodStart();
+		return stakePeriodStart > -1 && stakePeriodStart <= latestRewardableStakePeriodStart(); // need to change back  < = only for testing
 	}
 
 	public long effectivePeriod(final long stakePeriodStart) {

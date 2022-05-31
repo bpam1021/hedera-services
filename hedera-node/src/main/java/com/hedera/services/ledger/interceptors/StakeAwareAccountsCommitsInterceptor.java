@@ -147,13 +147,13 @@ public class StakeAwareAccountsCommitsInterceptor extends AccountsCommitIntercep
 
 			final var curNodeId = (account != null) ? account.getStakedId() : 0L;
 			final var newNodeId = getNodeStakeeNum(changes);
-			if (curNodeId < 0 && curNodeId != newNodeId) {
+			if (curNodeId < 0 && curNodeId != newNodeId && newNodeId != 0) {
 				// Node stakee has been replaced, withdraw stakeRewarded or stakeNotRewarded from ex-stakee based on
 				// isDeclineReward option
 				stakeChangeManager.withdrawStake(
 						account.getStakedNodeAddressBookId(), // since nodeId is saved as  -nodeId -1
 						account.getBalance() + account.getStakedToMe(),
-						account != null && account.isDeclinedReward());
+						account.isDeclinedReward());
 			}
 			if (newNodeId < 0) {
 				// Award updated stake to new node stakee to the fields stakeRewarded or stakeNotRewarded from

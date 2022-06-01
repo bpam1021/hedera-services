@@ -26,7 +26,6 @@ import com.hedera.services.context.properties.GlobalDynamicProperties;
 import com.hedera.services.fees.FeeExemptions;
 import com.hedera.services.ledger.HederaLedger;
 import com.hedera.services.state.merkle.MerkleAccount;
-import com.hedera.services.state.submerkle.EntityId;
 import com.hedera.services.utils.EntityNum;
 import com.hedera.services.utils.accessors.TxnAccessor;
 import com.hederahashgraph.api.proto.java.AccountID;
@@ -38,7 +37,7 @@ import javax.inject.Singleton;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import static com.hedera.services.utils.EntityIdUtils.asAccount;
+import static com.hedera.services.context.properties.StaticPropertiesHolder.STATIC_PROPERTIES;
 
 /**
  * Implements the {@link NarratedCharging} contract using a injected {@link HederaLedger}
@@ -83,8 +82,8 @@ public class NarratedLedgerCharging implements NarratedCharging {
 		this.nodeInfo = nodeInfo;
 		this.feeExemptions = feeExemptions;
 		this.dynamicProperties = dynamicProperties;
-		stakingRewardAccountId = asAccount(EntityId.fromIdentityCode((int) accountNumbers.stakingRewardAccount()));
-		nodeRewardAccountId = asAccount(EntityId.fromIdentityCode((int) accountNumbers.nodeRewardAccount()));
+		stakingRewardAccountId = STATIC_PROPERTIES.scopedAccountWith(accountNumbers.stakingRewardAccount());
+		nodeRewardAccountId = STATIC_PROPERTIES.scopedAccountWith(accountNumbers.nodeRewardAccount());
 	}
 
 	@Override

@@ -1,7 +1,6 @@
 package com.hedera.services.ledger.interceptors;
 
 import com.hedera.services.context.properties.PropertySource;
-import com.hedera.services.ledger.accounts.staking.StakeInfoManager;
 import com.hedera.services.records.RecordsHistorian;
 import com.hedera.services.state.EntityCreator;
 import com.hedera.services.state.merkle.MerkleAccount;
@@ -66,8 +65,6 @@ class EndOfStakingPeriodCalculatorTest {
 	EntityCreator creator;
 	@Mock
 	PropertySource properties;
-	@Mock
-	StakeInfoManager stakeInfoManager;
 
 	private EndOfStakingPeriodCalculator subject;
 
@@ -76,7 +73,6 @@ class EndOfStakingPeriodCalculatorTest {
 		subject = new EndOfStakingPeriodCalculator(
 				() -> accounts,
 				() -> stakingInfos,
-				stakeInfoManager,
 				() -> merkleNetworkContext,
 				syntheticTxnFactory,
 				recordsHistorian,
@@ -102,7 +98,6 @@ class EndOfStakingPeriodCalculatorTest {
 		final var consensusTime = Instant.now();
 		final var balance_800 = 100_000_000_000L;
 		final var account_800 = mock(MerkleAccount.class);
-		final var nodeStakingInfo0 = mock(MerkleStakingInfo.class);
 
 		given(merkleNetworkContext.areRewardsActivated()).willReturn(true);
 		given(properties.getLongProperty("staking.rewardRate")).willReturn(10_000_000_000L);
@@ -110,7 +105,6 @@ class EndOfStakingPeriodCalculatorTest {
 		given(accounts.get(EntityNum.fromInt(800))).willReturn(account_800);
 		given(account_800.getBalance()).willReturn(balance_800);
 		given(stakingInfos.keySet()).willReturn(Set.of(nodeNum1, nodeNum2, nodeNum3));
-		given(stakingInfos.get(nodeNum1)).willReturn(stakingInfo1);
 		given(stakingInfos.getForModify(nodeNum1)).willReturn(stakingInfo1);
 		given(stakingInfos.getForModify(nodeNum2)).willReturn(stakingInfo2);
 		given(stakingInfos.getForModify(nodeNum3)).willReturn(stakingInfo3);

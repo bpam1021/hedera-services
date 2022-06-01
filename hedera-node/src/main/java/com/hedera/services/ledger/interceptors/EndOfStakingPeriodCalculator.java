@@ -23,7 +23,6 @@ package com.hedera.services.ledger.interceptors;
 import com.hedera.services.context.SideEffectsTracker;
 import com.hedera.services.context.annotations.CompositeProps;
 import com.hedera.services.context.properties.PropertySource;
-import com.hedera.services.ledger.accounts.staking.StakeInfoManager;
 import com.hedera.services.records.RecordsHistorian;
 import com.hedera.services.state.EntityCreator;
 import com.hedera.services.state.merkle.MerkleAccount;
@@ -57,20 +56,16 @@ public class EndOfStakingPeriodCalculator {
 
 	private final Supplier<MerkleMap<EntityNum, MerkleAccount>> accounts;
 	private final Supplier<MerkleMap<EntityNum, MerkleStakingInfo>> stakingInfoSupplier;
-	private final StakeInfoManager stakeInfoManager;
 	private final Supplier<MerkleNetworkContext> merkleNetworkContextSupplier;
 	private final SyntheticTxnFactory syntheticTxnFactory;
 	private final RecordsHistorian recordsHistorian;
 	private final EntityCreator creator;
 	private final PropertySource properties;
-
 	private static final Logger log = LogManager.getLogger(EndOfStakingPeriodCalculator.class);
-
 	@Inject
 	public EndOfStakingPeriodCalculator(
 			final Supplier<MerkleMap<EntityNum, MerkleAccount>> accounts,
 			final Supplier<MerkleMap<EntityNum, MerkleStakingInfo>> stakingInfoSupplier,
-			final StakeInfoManager stakeInfoManager,
 			final Supplier<MerkleNetworkContext> merkleNetworkContextSupplier,
 			final SyntheticTxnFactory syntheticTxnFactory,
 			final RecordsHistorian recordsHistorian,
@@ -84,7 +79,6 @@ public class EndOfStakingPeriodCalculator {
 		this.recordsHistorian = recordsHistorian;
 		this.creator = creator;
 		this.properties = properties;
-		this.stakeInfoManager = stakeInfoManager;
 	}
 
 	public void updateNodes(final Instant consensusTime) {
@@ -105,8 +99,6 @@ public class EndOfStakingPeriodCalculator {
 
 		for (final var nodeNum : stakingInfo.keySet().stream().sorted().toList()) {
 			final var merkleStakingInfo = stakingInfo.getForModify(nodeNum);
-					// stakeInfoManager.mutableStakeInfoFor(nodeNum.longValue());
-					// stakingInfo.getForModify(nodeNum);
 			merkleStakingInfo.updateRewardSumHistory(rewardRate, merkleNetworkContext.getTotalStakedRewardStart());
 
 			final var totalStake = merkleStakingInfo.getStakeToReward() + merkleStakingInfo.getStakeToNotReward();
@@ -122,8 +114,6 @@ public class EndOfStakingPeriodCalculator {
 			}
 
 			final var stakedRewardUsed = Math.min(merkleStakingInfo.getStakeToReward(), merkleStakingInfo.getStake());
-			// set stakedRewardStart.
-			merkleStakingInfo.setStakeRewardStart(stakedRewardUsed);
 			updatedTotalStakedRewardStart += stakedRewardUsed;
 			updatedTotalStakedStart += merkleStakingInfo.getStake();
 

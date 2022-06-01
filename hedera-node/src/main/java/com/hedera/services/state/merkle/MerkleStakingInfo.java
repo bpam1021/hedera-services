@@ -66,7 +66,8 @@ public class MerkleStakingInfo extends AbstractMerkleLeaf implements Keyed<Entit
 	@Nullable
 	byte[] historyHash;
 
-	public MerkleStakingInfo() {}
+	public MerkleStakingInfo() {
+	}
 
 	public MerkleStakingInfo(
 			final long minStake,
@@ -315,6 +316,16 @@ public class MerkleStakingInfo extends AbstractMerkleLeaf implements Keyed<Entit
 		historyHash = null;
 	}
 
+	private void assertMutable(String proximalField) {
+		if (isImmutable()) {
+			throw new MutabilityException("Cannot set " + proximalField + " on an immutable StakingInfo!");
+		}
+	}
+
+	private void assertMutableRewardSumHistory() {
+		assertMutable("rewardSumHistory");
+	}
+
 	public void removeRewardStake(final long amount, final boolean declinedReward) {
 		if (declinedReward) {
 			this.stakeToNotReward = stakeToNotReward - amount;
@@ -329,15 +340,5 @@ public class MerkleStakingInfo extends AbstractMerkleLeaf implements Keyed<Entit
 		} else {
 			this.stakeToReward = stakeToReward + amount;
 		}
-	}
-
-	private void assertMutable(String proximalField) {
-		if (isImmutable()) {
-			throw new MutabilityException("Cannot set " + proximalField + " on an immutable StakingInfo!");
-		}
-	}
-
-	private void assertMutableRewardSumHistory() {
-		assertMutable("rewardSumHistory");
 	}
 }

@@ -785,7 +785,7 @@ class StateViewTest {
 				.setMaxAutomaticTokenAssociations(tokenAccount.getMaxAutomaticAssociations())
 				.setStakingInfo(StakingInfo.newBuilder()
 						.setDeclineReward(true)
-						.setStakedAccountId(AccountID.newBuilder().setAccountNum(10).build())
+						.setStakedAccountId(asAccount("0.0.10"))
 						.build())
 				.build();
 

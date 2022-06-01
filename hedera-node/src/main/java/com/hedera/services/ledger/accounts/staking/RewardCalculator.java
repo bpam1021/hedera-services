@@ -33,7 +33,6 @@ import static com.hedera.services.ledger.accounts.staking.StakingUtils.finalBala
 import static com.hedera.services.ledger.properties.AccountProperty.BALANCE;
 import static com.hedera.services.ledger.properties.AccountProperty.STAKE_PERIOD_START;
 import static com.hedera.services.utils.Units.HBARS_TO_TINYBARS;
-
 @Singleton
 public class RewardCalculator {
 	private final StakePeriodManager stakePeriodManager;
@@ -53,8 +52,10 @@ public class RewardCalculator {
 	public void updateRewardChanges(final MerkleAccount account, final Map<AccountProperty, Object> changes) {
 		computePendingRewards(account);
 
-		final var balance = finalBalanceGiven(account, changes);
-		changes.put(BALANCE, balance + accountReward);
+		if (accountReward > 0) {
+			final var balance = finalBalanceGiven(account, changes);
+			changes.put(BALANCE, balance + accountReward);
+		}
 
 		changes.put(STAKE_PERIOD_START, accountUpdatedStakePeriodStart);
 		rewardsPaid += accountReward; // used for adding balance change for 0.0.800

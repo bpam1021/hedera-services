@@ -278,6 +278,7 @@ class NetworkCtxManagerTest {
 
 	@Test
 	void relaxesIssInfoIfPastResetPeriod() {
+		subject.setIsAfter1Min(shouldUpdateMidnightRates);
 		given(networkCtx.consensusTimeOfLastHandledTxn()).willReturn(sometime);
 		given(issInfo.status()).willReturn(IssEventStatus.ONGOING_ISS);
 		given(issInfo.consensusTimeOfRecentAlert()).willReturn(Optional.of(sometime));
@@ -363,7 +364,7 @@ class NetworkCtxManagerTest {
 				1, 120, 1_234_567L,
 				1, 150, 2_345_678L);
 		// and:
-		subject.setIsNextDay(shouldUpdateMidnightRates);
+		subject.setIsAfter1Min(shouldUpdateMidnightRates);
 
 		given(shouldUpdateMidnightRates.test(sometime, sometimeNextDay)).willReturn(true);
 		given(exchange.activeRates()).willReturn(curRates.toGrpc());
@@ -381,7 +382,7 @@ class NetworkCtxManagerTest {
 	@Test
 	void doesntUpdateRatesIfTestDoesntSayTooButDoesUpdateLastMidnightCheck() {
 		// setup:
-		subject.setIsNextDay(shouldUpdateMidnightRates);
+		subject.setIsAfter1Min(shouldUpdateMidnightRates);
 
 		given(networkCtx.consensusTimeOfLastHandledTxn()).willReturn(sometime);
 
@@ -412,6 +413,7 @@ class NetworkCtxManagerTest {
 		// setup:
 		final var sometimePlusSomeNanos = sometime.plusNanos(1_234);
 		final var sometimePlusOneSecond = sometime.plusSeconds(1);
+		subject.setIsAfter1Min(shouldUpdateMidnightRates);
 
 		given(networkCtx.consensusTimeOfLastHandledTxn()).willReturn(sometimePlusSomeNanos);
 
@@ -444,6 +446,7 @@ class NetworkCtxManagerTest {
 
 	@Test
 	void advancesClockAsExpectedWhenNotPassingMidnight() {
+		subject.setIsAfter1Min(shouldUpdateMidnightRates);
 		given(networkCtx.consensusTimeOfLastHandledTxn()).willReturn(sometime);
 
 		// when:

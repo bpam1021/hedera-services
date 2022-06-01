@@ -31,6 +31,7 @@ class StakePeriodManagerTest {
 
 	@BeforeEach
 	public void setUp() {
+		given(properties.getLongProperty("staking.periodMins")).willReturn(1440L);
 		subject = new StakePeriodManager(txnCtx, () -> networkContext, properties);
 	}
 

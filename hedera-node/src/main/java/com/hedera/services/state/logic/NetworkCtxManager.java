@@ -71,7 +71,7 @@ public class NetworkCtxManager {
 	private final TransactionContext txnCtx;
 
 	private BiPredicate<Instant, Instant> isNextDay = (now, then) -> !inSameUtcDay(now, then);
-	private final BiPredicate<Instant, Instant> isAfter1Min = (now, then) -> !isAfter1Min(now, then);
+	private BiPredicate<Instant, Instant> isAfter1Min = (now, then) -> !isAfter1Min(now, then);
 
 	@Inject
 	public NetworkCtxManager(
@@ -214,6 +214,10 @@ public class NetworkCtxManager {
 
 	void setIsNextDay(BiPredicate<Instant, Instant> isNextDay) {
 		this.isNextDay = isNextDay;
+	}
+
+	void setIsAfter1Min(BiPredicate<Instant, Instant> isAfter1Min) {
+		this.isAfter1Min = isAfter1Min;
 	}
 
 	BiPredicate<Instant, Instant> getIsNextDay() {

@@ -122,31 +122,15 @@ public class NetworkCtxManager {
 	public void advanceConsensusClockTo(Instant consensusTime) {
 		final var networkCtxNow = networkCtx.get();
 		final var lastConsensusTime = networkCtxNow.consensusTimeOfLastHandledTxn();
-		final var lastMidnightBoundaryCheck = networkCtxNow.lastMidnightBoundaryCheck();
-
-		if (lastMidnightBoundaryCheck != null) {
-			final long intervalSecs = dynamicProperties.ratesMidnightCheckInterval();
-			final long elapsedInterval = consensusTime.getEpochSecond() - lastMidnightBoundaryCheck.getEpochSecond();
-
-			/* We only check whether the midnight rates should be updated every intervalSecs in consensus time */
-			if (elapsedInterval >= intervalSecs) {
-				/* If the lastMidnightBoundaryCheck was in a different UTC day, we update the midnight rates
-				* and perform end of staking period calculations */
-				if (isAfter1Min.test(lastMidnightBoundaryCheck, consensusTime)) {
-					networkCtxNow.midnightRates().replaceWith(exchange.activeRates());
-					endOfStakingPeriodCalculator.updateNodes(consensusTime);
-					log.info("Updating rewardSumHistory for end of Period Calculations");
-				}
-				/* And mark this as the last time we checked the midnight boundary */
-				networkCtxNow.setLastMidnightBoundaryCheck(consensusTime);
-			}
-		} else {
-			/* The first transaction after genesis will initialize the lastMidnightBoundaryCheck */
-			networkCtxNow.setLastMidnightBoundaryCheck(consensusTime);
-		}
 
 		if (lastConsensusTime == null || consensusTime.getEpochSecond() > lastConsensusTime.getEpochSecond()) {
 			consensusSecondJustChanged = true;
+			// We're in a new second, so check if it's the first of a UTC calendar day; there are
+			// some special actions that trigger on the first transaction after midnight
+			if (lastConsensusTime == null || isAfter1Min.test(lastConsensusTime, consensusTime)) {
+				networkCtxNow.midnightRates().replaceWith(exchange.activeRates());
+				endOfStakingPeriodCalculator.updateNodes(consensusTime);
+			}
 		} else {
 			consensusSecondJustChanged = false;
 		}
@@ -207,7 +191,7 @@ public class NetworkCtxManager {
 		return now.getEpochSecond() > then.getEpochSecond() + 60;
 	}
 
-	public static boolean 	inSameUtcDay(Instant now, Instant then) {
+	public static boolean inSameUtcDay(Instant now, Instant then) {
 		return LocalDateTime.ofInstant(now, UTC).getDayOfYear() == LocalDateTime.ofInstant(then, UTC).getDayOfYear();
 	}
 

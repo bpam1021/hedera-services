@@ -21,6 +21,7 @@ package com.hedera.services.state.merkle;
  */
 
 import com.google.common.base.MoreObjects;
+import com.hedera.services.context.properties.BootstrapProperties;
 import com.hedera.services.utils.EntityIdUtils;
 import com.hedera.services.utils.EntityNum;
 import com.swirlds.common.crypto.DigestType;
@@ -48,8 +49,7 @@ import static com.hedera.services.utils.Units.HBARS_TO_TINYBARS;
 public class MerkleStakingInfo extends AbstractMerkleLeaf implements Keyed<EntityNum> {
 	private static final Logger log = LogManager.getLogger(MerkleStakingInfo.class);
 	// get this max history from the props.
-	static final int MAX_REWARD_HISTORY = 5;
-	static final long[] EMPTY_REWARD_HISTORY = new long[MAX_REWARD_HISTORY];
+	static final int MAX_REWARD_HISTORY = 366;
 
 	static final int RELEASE_0270_VERSION = 1;
 	static final int CURRENT_VERSION = RELEASE_0270_VERSION;
@@ -62,11 +62,16 @@ public class MerkleStakingInfo extends AbstractMerkleLeaf implements Keyed<Entit
 	private long stakeToNotReward;
 	private long stakeRewardStart;
 	private long stake;
-	private long[] rewardSumHistory = EMPTY_REWARD_HISTORY;
+	private long[] rewardSumHistory;
 	@Nullable
 	byte[] historyHash;
 
 	public MerkleStakingInfo() {
+
+	}
+
+	public MerkleStakingInfo(BootstrapProperties bootstrapProperties) {
+		rewardSumHistory = new long[bootstrapProperties.getIntProperty("staking.rewardHistory.numStoredPeriods") + 1];
 	}
 
 	public MerkleStakingInfo(

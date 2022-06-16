@@ -55,8 +55,6 @@ public class UmbrellaRedux extends HapiApiSuite {
 	private AtomicInteger maxPendingOps = new AtomicInteger(Integer.MAX_VALUE);
 	private AtomicInteger backoffSleepSecs = new AtomicInteger(1);
 	private AtomicInteger statusTimeoutSecs = new AtomicInteger(5);
-	/** gradually ramp up transaction TPS */
-	private AtomicInteger rampUpWindowSec = new AtomicInteger(0);
 	private AtomicReference<String> props = new AtomicReference<>(DEFAULT_PROPERTIES);
 	private AtomicReference<TimeUnit> unit = new AtomicReference<>(MILLISECONDS);
 
@@ -95,7 +93,6 @@ public class UmbrellaRedux extends HapiApiSuite {
 						sourcing( () -> runWithProvider(factoryFrom(props::get))
 								.lasting(duration::get, unit::get)
 								.maxOpsPerSec(maxOpsPerSec::get)
-								.rampUpWindowSec(rampUpWindowSec::get)
 								.maxPendingOps(maxPendingOps::get)
 								.backoffSleepSecs(backoffSleepSecs::get)
 
@@ -113,9 +110,6 @@ public class UmbrellaRedux extends HapiApiSuite {
 		}
 		if (ciProps.has("maxOpsPerSec")) {
 			maxOpsPerSec.set(ciProps.getInteger("maxOpsPerSec"));
-		}
-		if (ciProps.has("rampUpWindowSec")) {
-			rampUpWindowSec.set(ciProps.getInteger("rampUpWindowSec"));
 		}
 		if (ciProps.has("props")) {
 			props.set(ciProps.get("props"));

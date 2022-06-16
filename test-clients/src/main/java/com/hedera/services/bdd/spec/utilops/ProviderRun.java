@@ -45,7 +45,6 @@ import java.util.stream.Stream;
 import static com.hedera.services.bdd.spec.utilops.CustomSpecAssert.allRunFor;
 import static com.hedera.services.bdd.spec.utilops.UtilVerbs.inParallel;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class ProviderRun extends UtilOp {
 	private static final Logger log = LogManager.getLogger(ProviderRun.class);
@@ -54,12 +53,11 @@ public class ProviderRun extends UtilOp {
 	private static final int DEFAULT_MAX_PENDING_OPS = Integer.MAX_VALUE;
 	private static final int DEFAULT_BACKLOG_SLEEPOFF_SECS = 1;
 	private static final long DEFAULT_DURATION = 30;
-	private static final TimeUnit DEFAULT_UNIT = SECONDS;
+	private static final TimeUnit DEFAULT_UNIT = TimeUnit.SECONDS;
 	private static final int DEFAULT_TOTAL_OPS_TO_SUBMIT = -1;
 
 	private final Function<HapiApiSpec, OpProvider> providerFn;
 	private IntSupplier maxOpsPerSecSupplier = () -> DEFAULT_MAX_OPS_PER_SEC;
-	private IntSupplier rampUpWindowSecsSupplier = () -> 0;
 	private IntSupplier maxPendingOpsSupplier = () -> DEFAULT_MAX_PENDING_OPS;
 	private IntSupplier backoffSleepSecsSupplier = () -> DEFAULT_BACKLOG_SLEEPOFF_SECS;
 	private LongSupplier durationSupplier = () -> DEFAULT_DURATION;
@@ -89,11 +87,6 @@ public class ProviderRun extends UtilOp {
 		return this;
 	}
 
-	public ProviderRun rampUpWindowSec(IntSupplier rampUpWindowSecsSupplier) {
-		this.rampUpWindowSecsSupplier = rampUpWindowSecsSupplier;
-		return this;
-	}
-
 	public ProviderRun maxPendingOps(IntSupplier maxPendingOpsSupplier) {
 		this.maxPendingOpsSupplier = maxPendingOpsSupplier;
 		return this;
@@ -111,7 +104,6 @@ public class ProviderRun extends UtilOp {
 		int MAX_PENDING_OPS = maxPendingOpsSupplier.getAsInt();
 		int BACKOFF_SLEEP_SECS = backoffSleepSecsSupplier.getAsInt();
 		long duration = durationSupplier.getAsLong();
-		int rampUpWindowSec = rampUpWindowSecsSupplier.getAsInt();
 		OpProvider provider = providerFn.apply(spec);
 
 		allRunFor(spec, provider.suggestedInitializers().toArray(new HapiSpecOperation[0]));
@@ -130,12 +122,6 @@ public class ProviderRun extends UtilOp {
 		final var opsThisSecond = new AtomicInteger(0);
 		final var submissionBoundaryMs = new AtomicLong(stopwatch.elapsed(MILLISECONDS) + 1_000);
 		while (stopwatch.elapsed(unit) < duration) {
-			long secondsElapsed = stopwatch.elapsed(SECONDS);
-			if (secondsElapsed < rampUpWindowSec && rampUpWindowSec > 0) {
-				MAX_OPS_PER_SEC = (int) (maxOpsPerSecSupplier.getAsInt() * secondsElapsed/rampUpWindowSec);
-			} else {
-				MAX_OPS_PER_SEC = maxOpsPerSecSupplier.getAsInt();
-			}
 			long elapsedMs = stopwatch.elapsed(MILLISECONDS);
 			if (elapsedMs > submissionBoundaryMs.get()) {
 				submissionBoundaryMs.getAndAdd(1_000);

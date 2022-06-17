@@ -47,12 +47,6 @@ public class FcmDump {
 	static final String FC_DUMP_LOC_TPL = "data/saved/%s/%d/%s-round%d.fcm";
 	static final String DUMP_IO_WARNING = "Couldn't dump %s FCM!";
 
-	/**
-	 * Temporary directory provided by JUnit
-	 */
-	@TempDir
-	Path testDirectory;
-
 	@FunctionalInterface
 	interface DirectoryCreation {
 		Path createDirectories(Path dir, FileAttribute<?>... attrs) throws IOException;
@@ -95,8 +89,9 @@ public class FcmDump {
 
 	private void dump(MerkleNode fcm, String name, NodeId self, long round) {
 		var loc = String.format(FC_DUMP_LOC_TPL, ServicesMain.class.getName(), self.getId(), name, round);
+		final var dir = Path.of(loc).getParent();
 		try (MerkleDataOutputStream out = merkleOutFn.apply(loc)) {
-			out.writeMerkleTree(testDirectory.toFile(), fcm);
+			out.writeMerkleTree(dir.toFile(), fcm);
 		} catch (IOException e) {
 			log.warn(String.format(DUMP_IO_WARNING, name));
 		}

@@ -55,6 +55,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.times;
@@ -67,12 +68,6 @@ class FcmDumpTest {
 	private static final long round = 1_234_567;
 	private static final NodeId self = new NodeId(false, selfId);
 	private static final String OK_PATH = "src/test/resources/tmp.nothing";
-
-	/**
-	 * Temporary directory provided by JUnit
-	 */
-	@TempDir
-	Path testDirectory;
 
 	@Mock
 	private ServicesState state;
@@ -118,12 +113,12 @@ class FcmDumpTest {
 		subject.dumpFrom(state, self, round);
 
 		// then:
-		verify(out).writeMerkleTree(testDirectory.toFile(), accounts);
-		verify(out).writeMerkleTree(testDirectory.toFile(), storage);
-		verify(out).writeMerkleTree(testDirectory.toFile(), topics);
-		verify(out).writeMerkleTree(testDirectory.toFile(), tokens);
-		verify(out).writeMerkleTree(testDirectory.toFile(), tokenAssociations);
-		verify(out).writeMerkleTree(testDirectory.toFile(), scheduleTxs);
+		verify(out).writeMerkleTree(any(), eq(accounts));
+		verify(out).writeMerkleTree(any(), eq(storage));
+		verify(out).writeMerkleTree(any(), eq(topics));
+		verify(out).writeMerkleTree(any(), eq(tokens));
+		verify(out).writeMerkleTree(any(), eq(tokenAssociations));
+		verify(out).writeMerkleTree(any(), eq(scheduleTxs));
 		// and:
 		verify(out, times(6)).close();
 	}
@@ -142,7 +137,7 @@ class FcmDumpTest {
 		given(state.tokenAssociations()).willReturn(tokenAssociations);
 		given(state.scheduleTxs()).willReturn(scheduleTxs);
 		// and:
-		willThrow(IOException.class).given(out).writeMerkleTree(testDirectory.toFile(), any());
+		willThrow(IOException.class).given(out).writeMerkleTree(any(), any());
 
 		// when:
 		subject.dumpFrom(state, self, round);

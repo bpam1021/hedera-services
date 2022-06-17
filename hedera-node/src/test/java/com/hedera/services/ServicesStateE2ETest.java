@@ -40,6 +40,7 @@ import com.swirlds.platform.state.signed.SignedState;
 import com.swirlds.platform.state.signed.SignedStateFileManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -61,6 +62,7 @@ import static org.mockito.Mockito.when;
  * previous saved serialized byte data. Also, make sure that you have fully read out all bytes to de-serialize and not
  * leaving remaining bytes in the stream to decode.
  */
+@Disabled
 public class ServicesStateE2ETest {
 	private final String signedStateDir = "src/test/resources/signedState/";
 

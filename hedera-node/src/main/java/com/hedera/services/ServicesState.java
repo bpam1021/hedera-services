@@ -315,7 +315,6 @@ public class ServicesState extends PartialNaryMerkleInternal implements MerkleIn
 		}
 	}
 
-
 	@Override
 	public AddressBook getAddressBookCopy() {
 		return addressBook().copy();

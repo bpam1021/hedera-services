@@ -297,6 +297,7 @@ public class ServicesState extends PartialNaryMerkleInternal implements MerkleIn
 					networkCtx().markMigrationRecordsNotYetStreamed();
 				}
 			}
+			networkCtx().setStateVersion(CURRENT_VERSION);
 
 			metadata = new StateMetadata(app, new FCHashMap<>());
 			// Log state before migration.

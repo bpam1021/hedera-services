@@ -212,7 +212,7 @@ class MerkleAccountTest {
 	void merkleMethodsWork() {
 		assertEquals(
 				MerkleAccount.ChildIndices.NUM_0240_CHILDREN,
-				subject.getMinimumChildCount(MerkleAccount.MERKLE_VERSION));
+				subject.getMinimumChildCount());
 		assertEquals(MerkleAccount.MERKLE_VERSION, subject.getVersion());
 		assertEquals(MerkleAccount.RUNTIME_CONSTRUCTABLE_ID, subject.getClassId());
 		assertFalse(subject.isLeaf());
@@ -237,7 +237,7 @@ class MerkleAccountTest {
 		assertEquals(state.expiry(), subject.getExpiry());
 		assertEquals(state.balance(), subject.getBalance());
 		assertEquals(state.autoRenewSecs(), subject.getAutoRenewSecs());
-		assertEquals(state.isReleased(), subject.isReleased());
+		assertEquals(state.isDestroyed(), subject.isDestroyed());
 		assertEquals(state.isSmartContract(), subject.isSmartContract());
 		assertEquals(state.isReceiverSigRequired(), subject.isReceiverSigRequired());
 		assertEquals(state.memo(), subject.getMemo());
@@ -403,6 +403,6 @@ class MerkleAccountTest {
 	void delegatesDelete() {
 		subject.release();
 
-		verify(payerRecords).decrementReferenceCount();
+		verify(payerRecords).release();
 	}
 }

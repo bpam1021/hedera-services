@@ -36,7 +36,8 @@ import com.swirlds.common.crypto.DigestType;
 import com.swirlds.common.crypto.Hash;
 import com.swirlds.common.io.streams.SerializableDataInputStream;
 import com.swirlds.common.io.streams.SerializableDataOutputStream;
-import com.swirlds.common.merkle.utility.AbstractMerkleLeaf;
+import com.swirlds.common.merkle.MerkleLeaf;
+import com.swirlds.common.merkle.impl.PartialMerkleLeaf;
 import com.swirlds.common.utility.CommonUtils;
 import com.swirlds.fcqueue.FCQueue;
 import org.apache.logging.log4j.LogManager;
@@ -60,7 +61,7 @@ import static com.hedera.services.state.serdes.IoUtils.readNullable;
 import static com.hedera.services.state.serdes.IoUtils.writeNullable;
 import static com.hedera.services.state.submerkle.RichInstant.fromJava;
 
-public class MerkleNetworkContext extends AbstractMerkleLeaf {
+public class MerkleNetworkContext extends PartialMerkleLeaf implements MerkleLeaf {
 	private static final Logger log = LogManager.getLogger(MerkleNetworkContext.class);
 
 	private static final int NUM_BLOCK_HASHES_TO_KEEP = 256;

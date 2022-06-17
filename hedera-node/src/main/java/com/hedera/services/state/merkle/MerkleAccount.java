@@ -32,7 +32,7 @@ import com.hedera.services.utils.EntityNum;
 import com.hedera.services.utils.EntityNumPair;
 import com.swirlds.common.merkle.MerkleInternal;
 import com.swirlds.common.merkle.MerkleNode;
-import com.swirlds.common.merkle.utility.AbstractNaryMerkleInternal;
+import com.swirlds.common.merkle.impl.PartialNaryMerkleInternal;
 import com.swirlds.common.merkle.utility.Keyed;
 import com.swirlds.fcqueue.FCQueue;
 import org.apache.logging.log4j.LogManager;
@@ -46,7 +46,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 
-public class MerkleAccount extends AbstractNaryMerkleInternal implements MerkleInternal, Keyed<EntityNum> {
+public class MerkleAccount extends PartialNaryMerkleInternal implements MerkleInternal, Keyed<EntityNum> {
 	private static final Logger log = LogManager.getLogger(MerkleAccount.class);
 
 	static Runnable stackDump = Thread::dumpStack;
@@ -111,7 +111,7 @@ public class MerkleAccount extends AbstractNaryMerkleInternal implements MerkleI
 	}
 
 	@Override
-	public int getMinimumChildCount(final int version) {
+	public int getMinimumChildCount() {
 		return ChildIndices.NUM_0240_CHILDREN;
 	}
 

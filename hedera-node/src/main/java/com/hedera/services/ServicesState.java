@@ -53,8 +53,9 @@ import com.hederahashgraph.api.proto.java.AccountID;
 import com.swirlds.common.crypto.DigestType;
 import com.swirlds.common.crypto.ImmutableHash;
 import com.swirlds.common.crypto.RunningHash;
+import com.swirlds.common.merkle.MerkleInternal;
 import com.swirlds.common.merkle.MerkleNode;
-import com.swirlds.common.merkle.utility.AbstractNaryMerkleInternal;
+import com.swirlds.common.merkle.impl.PartialNaryMerkleInternal;
 import com.swirlds.common.system.InitTrigger;
 import com.swirlds.common.system.NodeId;
 import com.swirlds.common.system.Platform;
@@ -97,7 +98,7 @@ import static com.swirlds.common.system.InitTrigger.RESTART;
 /**
  * The Merkle tree root of the Hedera Services world state.
  */
-public class ServicesState extends AbstractNaryMerkleInternal implements SwirldState.SwirldState2 {
+public class ServicesState extends PartialNaryMerkleInternal implements MerkleInternal,  SwirldState.SwirldState2 {
 	private static final Logger log = LogManager.getLogger(ServicesState.class);
 
 	private static final long RUNTIME_CONSTRUCTABLE_ID = 0x8e300b0dfdafbb1aL;
@@ -181,22 +182,8 @@ public class ServicesState extends AbstractNaryMerkleInternal implements SwirldS
 	}
 
 	@Override
-	public int getMinimumChildCount(int version) {
-		if (version >= MINIMUM_SUPPORTED_VERSION && version <= CURRENT_VERSION) {
-			return NUM_POST_0210_CHILDREN;
-		} else {
-			throw new IllegalArgumentException("Argument 'version='" + version + "' is invalid!");
-		}
-	}
-
-	@Override
 	public int getMinimumSupportedVersion() {
 		return MINIMUM_SUPPORTED_VERSION;
-	}
-
-	@Override
-	public void initialize() {
-		// No new top-level children
 	}
 
 	@Override
@@ -366,11 +353,6 @@ public class ServicesState extends AbstractNaryMerkleInternal implements SwirldS
 		}
 	}
 
-	@Override
-	public void noMoreTransactions() {
-		// no-op
-	}
-
 	/* --- FastCopyable --- */
 	@Override
 	public synchronized ServicesState copy() {
@@ -400,7 +382,7 @@ public class ServicesState extends AbstractNaryMerkleInternal implements SwirldS
 
 	/* --- MerkleNode --- */
 	@Override
-	protected synchronized void onRelease() {
+	protected synchronized void destroyNode() {
 		if (metadata != null) {
 			metadata.release();
 		}

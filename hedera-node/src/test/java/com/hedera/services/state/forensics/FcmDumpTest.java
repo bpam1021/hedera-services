@@ -40,12 +40,14 @@ import com.swirlds.merkle.map.MerkleMap;
 import com.swirlds.virtualmap.VirtualMap;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.function.Function;
 
@@ -65,6 +67,12 @@ class FcmDumpTest {
 	private static final long round = 1_234_567;
 	private static final NodeId self = new NodeId(false, selfId);
 	private static final String OK_PATH = "src/test/resources/tmp.nothing";
+
+	/**
+	 * Temporary directory provided by JUnit
+	 */
+	@TempDir
+	Path testDirectory;
 
 	@Mock
 	private ServicesState state;
@@ -110,12 +118,12 @@ class FcmDumpTest {
 		subject.dumpFrom(state, self, round);
 
 		// then:
-		verify(out).writeMerkleTree(accounts);
-		verify(out).writeMerkleTree(storage);
-		verify(out).writeMerkleTree(topics);
-		verify(out).writeMerkleTree(tokens);
-		verify(out).writeMerkleTree(tokenAssociations);
-		verify(out).writeMerkleTree(scheduleTxs);
+		verify(out).writeMerkleTree(testDirectory.toFile(), accounts);
+		verify(out).writeMerkleTree(testDirectory.toFile(), storage);
+		verify(out).writeMerkleTree(testDirectory.toFile(), topics);
+		verify(out).writeMerkleTree(testDirectory.toFile(), tokens);
+		verify(out).writeMerkleTree(testDirectory.toFile(), tokenAssociations);
+		verify(out).writeMerkleTree(testDirectory.toFile(), scheduleTxs);
 		// and:
 		verify(out, times(6)).close();
 	}
@@ -134,7 +142,7 @@ class FcmDumpTest {
 		given(state.tokenAssociations()).willReturn(tokenAssociations);
 		given(state.scheduleTxs()).willReturn(scheduleTxs);
 		// and:
-		willThrow(IOException.class).given(out).writeMerkleTree(any());
+		willThrow(IOException.class).given(out).writeMerkleTree(testDirectory.toFile(), any());
 
 		// when:
 		subject.dumpFrom(state, self, round);

@@ -24,7 +24,7 @@ import com.google.protobuf.ByteString;
 import com.hedera.services.ServicesApp;
 import com.hedera.services.utils.EntityNum;
 import com.swirlds.common.FastCopyable;
-import com.swirlds.common.merkle.Archivable;
+import com.swirlds.common.merkle.interfaces.Archivable;
 import com.swirlds.fchashmap.FCHashMap;
 
 import java.util.Map;
@@ -60,7 +60,7 @@ public class StateMetadata implements FastCopyable, Archivable {
 
 	@Override
 	public void release() {
-		if (!aliases.isReleased()) {
+		if (!aliases.isDestroyed()) {
 			aliases.release();
 		}
 	}

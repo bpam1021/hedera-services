@@ -114,7 +114,7 @@ class MerkleScheduledTransactionsTest {
 	void merkleMethodsWork() {
 		assertEquals(
 				MerkleScheduledTransactions.ChildIndices.NUM_0270_CHILDREN,
-				subject.getMinimumChildCount(MerkleScheduledTransactions.CURRENT_VERSION));
+				subject.getMinimumChildCount());
 		assertEquals(MerkleScheduledTransactions.CURRENT_VERSION, subject.getVersion());
 		assertEquals(MerkleScheduledTransactions.RUNTIME_CONSTRUCTABLE_ID, subject.getClassId());
 		assertFalse(subject.isLeaf());
@@ -185,9 +185,9 @@ class MerkleScheduledTransactionsTest {
 	void delegatesDelete() {
 		subject.release();
 
-		verify(byId).decrementReferenceCount();
-		verify(byExpirationSecond).decrementReferenceCount();
-		verify(byEquality).decrementReferenceCount();
+		verify(byId).release();
+		verify(byExpirationSecond).release();
+		verify(byEquality).release();
 	}
 
 	@Test

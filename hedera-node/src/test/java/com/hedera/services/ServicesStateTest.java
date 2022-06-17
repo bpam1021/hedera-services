@@ -388,7 +388,7 @@ class ServicesStateTest {
 	void onReleaseAndArchiveNoopIfMetadataNull() {
 		setAllMmsTo(mock(MerkleMap.class));
 		Assertions.assertDoesNotThrow(subject::archive);
-		Assertions.assertDoesNotThrow(subject::onRelease);
+		Assertions.assertDoesNotThrow(subject::destroyNode);
 	}
 
 	@Test
@@ -397,7 +397,7 @@ class ServicesStateTest {
 		subject.setMetadata(metadata);
 
 		// when:
-		subject.onRelease();
+		subject.destroyNode();
 
 		// then:
 		verify(metadata).release();
@@ -421,7 +421,7 @@ class ServicesStateTest {
 	@Test
 	void noMoreTransactionsIsNoop() {
 		// expect:
-		assertDoesNotThrow(subject::noMoreTransactions);
+		assertDoesNotThrow(subject::destroyNode);
 	}
 
 	@Test
@@ -528,17 +528,6 @@ class ServicesStateTest {
 	void minimumVersionIsRelease0240() {
 		// expect:
 		assertEquals(StateVersions.RELEASE_024X_VERSION, subject.getMinimumSupportedVersion());
-	}
-
-	@Test
-	void minimumChildCountsAsExpected() {
-		assertEquals(
-				StateChildIndices.NUM_POST_0210_CHILDREN,
-				subject.getMinimumChildCount(StateVersions.MINIMUM_SUPPORTED_VERSION));
-		assertThrows(IllegalArgumentException.class,
-				() -> subject.getMinimumChildCount(StateVersions.MINIMUM_SUPPORTED_VERSION - 1));
-		assertThrows(IllegalArgumentException.class,
-				() -> subject.getMinimumChildCount(StateVersions.CURRENT_VERSION + 1));
 	}
 
 	@Test

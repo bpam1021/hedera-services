@@ -26,14 +26,15 @@ import com.hedera.services.store.models.Id;
 import com.hederahashgraph.api.proto.java.TokenID;
 import com.swirlds.common.io.streams.SerializableDataInputStream;
 import com.swirlds.common.io.streams.SerializableDataOutputStream;
-import com.swirlds.common.merkle.utility.AbstractMerkleLeaf;
+import com.swirlds.common.merkle.MerkleLeaf;
+import com.swirlds.common.merkle.impl.PartialMerkleLeaf;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-public class MerkleAccountTokens extends AbstractMerkleLeaf {
+public class MerkleAccountTokens extends PartialMerkleLeaf implements MerkleLeaf {
 	static final int MAX_CONCEIVABLE_TOKEN_ID_PARTS = Integer.MAX_VALUE;
 
 	static final int NUM_ID_PARTS = 3;

@@ -28,6 +28,7 @@ import com.swirlds.common.system.NodeId;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.junit.jupiter.api.io.TempDir;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -46,6 +47,12 @@ public class FcmDump {
 	static final String FC_DUMP_LOC_TPL = "data/saved/%s/%d/%s-round%d.fcm";
 	static final String DUMP_IO_WARNING = "Couldn't dump %s FCM!";
 
+	/**
+	 * Temporary directory provided by JUnit
+	 */
+	@TempDir
+	Path testDirectory;
+
 	@FunctionalInterface
 	interface DirectoryCreation {
 		Path createDirectories(Path dir, FileAttribute<?>... attrs) throws IOException;
@@ -56,7 +63,7 @@ public class FcmDump {
 	private Function<String, MerkleDataOutputStream> merkleOutFn = dumpLoc -> {
 		try {
 			directoryCreation.createDirectories(Path.of(dumpLoc).getParent());
-			return new MerkleDataOutputStream(Files.newOutputStream(Path.of(dumpLoc))).setExternal(true);
+			return new MerkleDataOutputStream(Files.newOutputStream(Path.of(dumpLoc)));
 		} catch (IOException e) {
 			/* State dumps cannot be safely enabled in production, so if we get here it will
 			be in a dev environment where we can fix the location and re-run the test. */
@@ -89,7 +96,7 @@ public class FcmDump {
 	private void dump(MerkleNode fcm, String name, NodeId self, long round) {
 		var loc = String.format(FC_DUMP_LOC_TPL, ServicesMain.class.getName(), self.getId(), name, round);
 		try (MerkleDataOutputStream out = merkleOutFn.apply(loc)) {
-			out.writeMerkleTree(fcm);
+			out.writeMerkleTree(testDirectory.toFile(), fcm);
 		} catch (IOException e) {
 			log.warn(String.format(DUMP_IO_WARNING, name));
 		}

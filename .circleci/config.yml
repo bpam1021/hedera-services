@@ -1147,13 +1147,6 @@ workflows:
 
 
   GCP-Daily-Services-Global-3NReconnect-15N-4C:
-    triggers:
-      - schedule:
-          cron: "40 7 * * *"
-          filters:
-            branches:
-              only:
-                - master
     jobs:
       - build-platform-and-services
       - jrs-regression:
@@ -1239,13 +1232,6 @@ workflows:
                 at: /
 
   GCP-Daily-Services-Comp-Restart-Performance-Hotspot-6N-6C:
-    triggers:
-      - schedule:
-          cron: "35 7 * * *"
-          filters:
-            branches:
-              only:
-                - master
     jobs:
       - build-platform-and-services
       - jrs-regression:
@@ -1623,10 +1609,10 @@ jobs:
         default: true
       slack_results_channel:
         type: string
-        default: "jeffrey-service-test"
+        default: "hedera-regression-test"
       slack_summary_channel:
         type: string
-        default: "jeffrey-service-test"
+        default: "hedera-regression-test"
       workflow-name:
         type: string
         default: ""

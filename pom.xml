@@ -232,7 +232,7 @@
 		<log4j.version>2.17.2</log4j.version>
 		<netty.version>4.1.66.Final</netty.version>
 		<protobuf-java.version>3.19.4</protobuf-java.version>
-		<swirlds.version>0.28.0-adhoc.xfbc92ac5 </swirlds.version>
+		<swirlds.version>0.28.0-adhoc.xdb31d7d0</swirlds.version>
 		<tuweni.version>2.2.0</tuweni.version>
 
 		<!-- Test dependency properties in alphabetical order -->

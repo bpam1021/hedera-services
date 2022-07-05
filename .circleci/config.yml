@@ -1627,6 +1627,7 @@ jobs:
             
             # Build JRS
             cd /swirlds-platform/regression
+            git checkout -b 01775-D-thread-upload-client origin/01775-D-thread-upload-client
             ./mvnw clean install
 
       - run:
@@ -1704,10 +1705,10 @@ jobs:
         default: true
       slack_results_channel:
         type: string
-        default: "hedera-regression"
+        default: "hedera-regression-test"
       slack_summary_channel:
         type: string
-        default: "hedera-regression-summary"
+        default: "hedera-regression-test"
       workflow-name:
         type: string
         default: ""

@@ -801,13 +801,6 @@ workflows:
   # This workflow will be running normally in master branch on a daily basis
 
   GCP-Daily-Services-Crypto-Migration-7N-1C:
-    triggers:
-      - schedule:
-          cron: "45 5 * * *"
-          filters:
-            branches:
-              only:
-                - master
     jobs:
       - build-platform-and-services
       - jrs-regression:
@@ -1430,50 +1423,6 @@ workflows:
             - attach_workspace:
                 at: /
 
-  continuous-integration-gcp:
-      jobs:
-        - build-artifact:
-            name: "artifact-build"
-            context: SonarCloud
-            filters:
-              branches:
-                ignore:
-                  - NONE
-            workflow-name: "Continuous-integration"
-#        - sonar-check:
-#            context: SonarCloud
-#            requires:
-#              - artifact-build
-#            workflow-name: "Continuous-integration-GCP"
-
-        - build-platform-and-services:
-            context: SonarCloud
-            requires:
-              - artifact-build
-            workflow-name: "Continuous-integration-GCP"
-#        - javadoc-generation:
-#            context: Slack
-#            requires:
-#              - build-platform-and-services
-#            pre-steps:
-#              - attach_workspace:
-#                  at: /
-        - jrs-regression:
-            context: Slack
-            regression_path: /swirlds-platform/regression/assets
-            result_path: assets/results/4N_1C/CI
-            config_type: "ci"
-            workflow-name: "GCP-Commit-Services-Comp-Basic-4N-1C"
-            name: "run-continuous-integration-gcp"
-            continuous_integration: true
-            slack_results_channel: "hedera-cicd"
-            slack_summary_channel: "hedera-cicd"
-            requires:
-              - build-platform-and-services
-            pre-steps:
-              - install-tools
-              - attach_workspace:
-                  at: /
 jobs:
   build-artifact:
     parameters:
@@ -1627,6 +1576,7 @@ jobs:
             
             # Build JRS
             cd /swirlds-platform/regression
+            git checkout -b 02614-D-migration-test-state-file origin/02614-D-migration-test-state-file
             ./mvnw clean install
 
       - run:
@@ -1704,10 +1654,10 @@ jobs:
         default: true
       slack_results_channel:
         type: string
-        default: "hedera-regression"
+        default: "hedera-regression-test"
       slack_summary_channel:
         type: string
-        default: "hedera-regression-summary"
+        default: "hedera-regression-test"
       workflow-name:
         type: string
         default: ""

@@ -29,21 +29,31 @@ import org.apache.logging.log4j.Logger;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.hedera.services.bdd.spec.HapiApiSpec.defaultHapiSpec;
+import static com.hedera.services.bdd.spec.HapiPropertySource.asHexedSolidityAddress;
 import static com.hedera.services.bdd.spec.assertions.ContractFnResultAsserts.isLiteralResult;
 import static com.hedera.services.bdd.spec.assertions.ContractFnResultAsserts.resultWith;
 import static com.hedera.services.bdd.spec.keys.KeyFactory.KeyType.THRESHOLD;
+import static com.hedera.services.bdd.spec.keys.SigControl.SECP256K1_ON;
 import static com.hedera.services.bdd.spec.queries.QueryVerbs.contractCallLocal;
 import static com.hedera.services.bdd.spec.queries.QueryVerbs.contractCallLocalWithFunctionAbi;
 import static com.hedera.services.bdd.spec.queries.QueryVerbs.getAccountBalance;
+import static com.hedera.services.bdd.spec.queries.QueryVerbs.getReceipt;
+import static com.hedera.services.bdd.spec.queries.QueryVerbs.getTxnRecord;
 import static com.hedera.services.bdd.spec.transactions.TxnVerbs.contractCall;
+import static com.hedera.services.bdd.spec.transactions.TxnVerbs.contractCallWithFunctionAbi;
+import static com.hedera.services.bdd.spec.transactions.TxnVerbs.contractCreate;
 import static com.hedera.services.bdd.spec.transactions.TxnVerbs.contractDelete;
 import static com.hedera.services.bdd.spec.transactions.TxnVerbs.cryptoCreate;
-import static com.hedera.services.bdd.spec.transactions.TxnVerbs.contractCreate;
+import static com.hedera.services.bdd.spec.transactions.TxnVerbs.cryptoTransfer;
 import static com.hedera.services.bdd.spec.transactions.TxnVerbs.tokenCreate;
 import static com.hedera.services.bdd.spec.transactions.TxnVerbs.uploadInitCode;
+import static com.hedera.services.bdd.spec.transactions.crypto.HapiCryptoTransfer.tinyBarsFromToWithAlias;
+import static com.hedera.services.bdd.spec.utilops.UtilVerbs.newKeyNamed;
 import static com.hedera.services.bdd.spec.utilops.UtilVerbs.sleepFor;
+import static com.hedera.services.bdd.spec.utilops.UtilVerbs.sourcing;
 import static com.hedera.services.bdd.suites.contract.Utils.FunctionType.FUNCTION;
 import static com.hedera.services.bdd.suites.contract.Utils.getABIFor;
 import static com.hederahashgraph.api.proto.java.ResponseCodeEnum.CONTRACT_DELETED;
@@ -69,14 +79,15 @@ public class ContractCallLocalSuite extends HapiApiSuite {
 
 	@Override
 	public List<HapiApiSpec> getSpecsInSuite() {
-		return List.of(new HapiApiSpec[]{
-						deletedContract(),
-						invalidContractID(),
-						impureCallFails(),
-						insufficientFeeFails(),
-						lowBalanceFails(),
-						erc20Query(),
-						vanillaSuccess()
+		return List.of(new HapiApiSpec[] {
+//						deletedContract(),
+//						invalidContractID(),
+//						impureCallFails(),
+//						insufficientFeeFails(),
+//						lowBalanceFails(),
+//						erc20Query(),
+//						vanillaSuccess()
+						erc20Approve(),
 				}
 		);
 	}
@@ -92,7 +103,7 @@ public class ContractCallLocalSuite extends HapiApiSuite {
 						sleepFor(3_000L),
 						contractCallLocal(CONTRACT, "getIndirect")
 								.has(resultWith().resultViaFunctionName("getIndirect", CONTRACT,
-										isLiteralResult(new Object[]{BigInteger.valueOf(7L)})))
+										isLiteralResult(new Object[] { BigInteger.valueOf(7L) })))
 				);
 	}
 
@@ -186,17 +197,84 @@ public class ContractCallLocalSuite extends HapiApiSuite {
 
 	private HapiApiSpec erc20Query() {
 		final var decimalsABI = "{\"constant\": true,\"inputs\": [],\"name\": \"decimals\"," +
-								"\"outputs\": [{\"name\": \"\",\"type\": \"uint8\"}],\"payable\": false," +
-								"\"type\": \"function\"},";
+				"\"outputs\": [{\"name\": \"\",\"type\": \"uint8\"}],\"payable\": false," +
+				"\"type\": \"function\"},";
+		final var creation = "autoCreation";
+		final var eoaSender = "eoaSender";
+		final var ecdsaKey = "ecdsaKey";
+		final var nonStaticDecimalsCall = "nonStaticDecimalsCall";
 
 		return defaultHapiSpec("erc20Queries")
 				.given(
+						newKeyNamed(ecdsaKey).shape(SECP256K1_ON),
+						cryptoTransfer(
+								tinyBarsFromToWithAlias(DEFAULT_PAYER, ecdsaKey, ONE_HUNDRED_HBARS)
+						).via(creation),
+						getReceipt(creation).savingAutoCreation(eoaSender, ecdsaKey),
 						tokenCreate(TOKEN).decimals(DECIMALS).symbol(SYMBOL).asCallableContract()
 				).when(
+//						contractCallLocalWithFunctionAbi(TOKEN, decimalsABI)
+//								.has(resultWith().resultThruAbi(decimalsABI,
+//										isLiteralResult(new Object[] { BigInteger.valueOf(DECIMALS) })))
 				).then(
-						contractCallLocalWithFunctionAbi(TOKEN, decimalsABI)
-								.has(resultWith().resultThruAbi(decimalsABI,
-										isLiteralResult(new Object[] { BigInteger.valueOf(DECIMALS) })))
+						contractCallWithFunctionAbi(TOKEN, decimalsABI)
+								.payingWith(eoaSender)
+								.via(nonStaticDecimalsCall),
+						getTxnRecord(nonStaticDecimalsCall).logged()
+				);
+	}
+
+	private HapiApiSpec erc20Approve() {
+		final var approveAbi = "{ \"constant\": false, \"inputs\": [ { \"name\": \"_spender\", \"type\": \"address\" " +
+				"}," +
+				" { \"name\": \"_value\", \"type\": \"uint256\" } ], \"name\": \"approve\", \"outputs\": [ { \"name\":" +
+				" " +
+				"\"\", \"type\": \"bool\" } ], \"payable\": false, \"stateMutability\": \"nonpayable\", \"type\": " +
+				"\"function\" }";
+		final var creation = "autoCreation";
+		final var spender = "spender";
+		final var eoaSender = "eoaSender";
+		final var ecdsaKey = "ecdsaKey";
+		final var nonStaticDecimalsCall = "nonStaticDecimalsCall";
+		final AtomicReference<String> spenderMirrorAddr = new AtomicReference<>();
+
+		return defaultHapiSpec("Erc20Approve")
+				.given(
+						cryptoCreate(spender).exposingCreatedIdTo(id ->
+								spenderMirrorAddr.set(asHexedSolidityAddress(id))),
+						newKeyNamed(ecdsaKey).shape(SECP256K1_ON),
+						cryptoTransfer(
+								tinyBarsFromToWithAlias(DEFAULT_PAYER, ecdsaKey, ONE_HUNDRED_HBARS)
+						).via(creation),
+						getReceipt(creation).savingAutoCreation(eoaSender, ecdsaKey),
+						tokenCreate(TOKEN)
+								.treasury(eoaSender)
+								.initialSupply(1000)
+								.decimals(DECIMALS)
+								.symbol(SYMBOL)
+								.asCallableContract()
+				).when(
+						sourcing(() -> contractCallWithFunctionAbi(TOKEN, approveAbi, spenderMirrorAddr.get(), 100)
+								.gas(1_000_000)
+								.payingWith(eoaSender)
+								.via(nonStaticDecimalsCall))
+				).then(
+						/* SAMPLE OUTPUT:
+						      ...
+							  contractCallResult {
+								contractID {
+								   contractNum: 359
+								}
+								contractCallResult: "\000\000...\000\017"
+								...
+								sender_id {
+								   shardNum: -70672035
+								   realmNum: 8062295507940796406
+								   accountNum: 4428982008424832196
+								}
+							  }
+						*/
+						getTxnRecord(nonStaticDecimalsCall).andAllChildRecords().logged()
 				);
 	}
 

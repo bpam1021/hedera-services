@@ -25,6 +25,7 @@ import com.hedera.services.bdd.spec.HapiApiSpec;
 import com.hedera.services.bdd.spec.queries.HapiQueryOp;
 import com.hedera.services.bdd.spec.transactions.TxnUtils;
 import com.hedera.services.bdd.spec.transactions.schedule.HapiScheduleCreate;
+import com.hederahashgraph.api.proto.java.AccountID;
 import com.hederahashgraph.api.proto.java.HederaFunctionality;
 import com.hederahashgraph.api.proto.java.Query;
 import com.hederahashgraph.api.proto.java.ResponseCodeEnum;
@@ -39,6 +40,8 @@ import java.util.Optional;
 
 import static com.hedera.services.bdd.spec.queries.QueryUtils.txnReceiptQueryFor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class HapiGetReceipt extends HapiQueryOp<HapiGetReceipt> {
 	static final Logger log = LogManager.getLogger(HapiGetReceipt.class);
@@ -48,6 +51,8 @@ public class HapiGetReceipt extends HapiQueryOp<HapiGetReceipt> {
 	boolean requestDuplicates = false;
 	boolean useDefaultTxnId = false;
 	boolean getChildReceipts = false;
+	private String autoCreationName;
+	private String autoCreationSourceKey;
 	TransactionID defaultTxnId = TransactionID.getDefaultInstance();
 	Optional<String> expectedSchedule = Optional.empty();
 	Optional<String> expectedScheduledTxnId = Optional.empty();
@@ -86,6 +91,13 @@ public class HapiGetReceipt extends HapiQueryOp<HapiGetReceipt> {
 
 	public HapiGetReceipt andAnyChildReceipts() {
 		getChildReceipts = true;
+		return this;
+	}
+
+	public HapiGetReceipt savingAutoCreation(final String name, final String sourceKey) {
+		getChildReceipts = true;
+		autoCreationName = name;
+		autoCreationSourceKey = sourceKey;
 		return this;
 	}
 
@@ -135,6 +147,16 @@ public class HapiGetReceipt extends HapiQueryOp<HapiGetReceipt> {
 					childReceipts.size() > 1 ? "s" : "",
 					childReceipts);
 		}
+		if (autoCreationName != null && autoCreationSourceKey != null) {
+			assertTrue(childReceipts.size() >= 1, "No child records were present");
+			final var createdId = childReceipts.get(0).getAccountID();
+			assertNotEquals(AccountID.getDefaultInstance(), createdId);
+			final var registry = spec.registry();
+			registry.saveAccountId(autoCreationName, createdId);
+			registry.saveKey(autoCreationName, registry.getKey(autoCreationSourceKey));
+			log.info("Captured auto-creation of '{}' (0.0.{}) with key '{}'",
+					autoCreationName, createdId.getAccountNum(), autoCreationSourceKey);
+		}
 	}
 
 	@Override
@@ -160,7 +182,7 @@ public class HapiGetReceipt extends HapiQueryOp<HapiGetReceipt> {
 			var schedule = TxnUtils.asScheduleId(expectedSchedule.get(), spec);
 			assertEquals(schedule, receipt.getScheduleID(), "Wrong/missing schedule id!");
 		}
-		if(hasChildAutoAccountCreations.isPresent()) {
+		if (hasChildAutoAccountCreations.isPresent()) {
 			int count = hasChildAutoAccountCreations.get();
 			for (var childReceipt : childReceipts) {
 				if (childReceipt.hasAccountID()) {

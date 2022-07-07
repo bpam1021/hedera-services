@@ -869,13 +869,6 @@ workflows:
                 at: /
 
   GCP-Daily-Services-Update-Ubuntu1804-4N-2C:
-    triggers:
-      - schedule:
-          cron: "0 3 * * *"
-          filters:
-            branches:
-              only:
-                - master
     jobs:
       - build-platform-and-services
       - jrs-regression:

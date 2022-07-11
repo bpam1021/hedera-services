@@ -80,6 +80,7 @@ public class NodeLivenessTimeout extends UtilOp {
 			unit.sleep(retryIntervalDuration);
 			numSleeps++;
 			if ((now = Instant.now()).isAfter(nextDeadLog)) {
+				log.info("Error is {}", error.get().toString());
 				log.info(" --> Node {} not available after {} {}",
 						node,
 						numSleeps * retryIntervalDuration,

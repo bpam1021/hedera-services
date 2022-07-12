@@ -1377,7 +1377,6 @@ workflows:
             - attach_workspace:
                 at: /
 
-
   GCP-Daily-Services-Comp-ND-Reconnect-Correctness-6N-1C:
     triggers:
       - schedule:
